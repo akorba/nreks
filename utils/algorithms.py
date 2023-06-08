@@ -10,6 +10,7 @@ from utils.grad_inference import *
 from utils.preconditioners import *
 
 
+# independent Langevin sampler (independent particles)
 #  number of iterations, initialization
 def run_ULA(potential, N_sim, u0, tau):
     
@@ -62,10 +63,13 @@ def run_ALDINR(potential, N_sim, u0, tau, const):
     us_list_ALDINR = np.zeros((d,J,N_sim))
     us_list_ALDINR[:,:,0] = u0
     
-    means = np.ones((d,N_sim))
+    # to track the convergence
+    means = np.ones((d, N_sim)) # means of particles along iterations
     means[:, 0] = np.mean(u0, axis=1)
-    #m_th = np.ones((d,N_sim)) # theoretical means
-    
+    covariances = np.ones((d, d, N_sim))
+    covariances[:, :, 0] = np.cov(u0)*(J-1)/J
+    preconditioners = np.ones((d, d, N_sim)) # product of (D_opt+J_opt)K^{-1}
+    preconditioners[:, :, 0] = np.cov(u0)*(J-1)/J
     
     for n in range(N_sim-1): 
         if np.mod(n,100) == 0:
@@ -74,10 +78,7 @@ def run_ALDINR(potential, N_sim, u0, tau, const):
         us = us_list_ALDINR[:,:,n] # shape (d, J)
         m_us = np.mean(us, axis=1)[:,np.newaxis] # shape (2, 1)
         C = np.cov(us)*(J-1)/J # shape (2,2)
-        
-        #m_th[:,n] = np.mean(us, axis=1)
-        
-        
+
         # compute sqrt C
         sqrtC = scipy.linalg.sqrtm(C)
         
@@ -105,13 +106,13 @@ def run_ALDINR(potential, N_sim, u0, tau, const):
         diff = np.sqrt(2)*np.dot(sqrtD,noise) 
         
         us_list_ALDINR[:,:,n+1] = us+tau*drift  + np.sqrt(tau)*diff 
-    
-        #dis_C_opt[n] = np.linalg.norm(C-K)
         
-        #m_th[:,n+1] = m_th[:,n] - tau*np.dot(T,np.dot(K_inv,m_th[:,n]))
+        # keep record of some stats
         means[:, n+1] = np.mean(us_list_ALDINR[:,:,n+1], axis=1)
+        covariances[:,:, n+1] = np.cov(us)*(J-1)/J
+        preconditioners[:, :, n+1] = T
         
-    return us_list_ALDINR, means
+    return us_list_ALDINR, means, covariances, preconditioners
 
 
 """
