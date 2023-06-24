@@ -33,7 +33,7 @@ def coeffToGradHess(coeffs, X):
         return grad, None
 
 
-def inferGradientAndHess(xs, vs, hessian = True, ind=0, retOnlyMatrix=False, coeffs0=None, additionalvariance=0.0, scaledversion=False):    
+def inferGradientAndHess(xs, vs, hessian = False, ind=0, retOnlyMatrix=False, coeffs0=None, additionalvariance=0.0, scaledversion=False):    
     d,J = xs.shape
     X = xs-xs[:,ind,np.newaxis]
     V = vs-vs[ind]

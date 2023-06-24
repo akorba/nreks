@@ -22,7 +22,7 @@ def run_ULA(potential, N_sim, u0, tau):
     
     for n in range(N_sim-1):    
         us = us_list_ULA[:,:,n]
-        vs, H = compute_gradients(potential, us_list_ULA[:,:,n])
+        vs, _ = compute_gradients(potential, us_list_ULA[:,:,n])
         us_list_ULA[:,:,n+1] = us_list_ULA[:,:,n] - tau*vs \
             + np.sqrt(2*tau)*np.random.normal(0,1,(d,J))
 
@@ -45,7 +45,7 @@ def run_ALDI_with_gradient(potential, N_sim, u0, tau):
         C = np.cov(us)*(J-1)/J 
         Csqrt = 1/np.sqrt(J)*u_c
         
-        vs, H = compute_gradients(potential, us_list_ALDI[:,:,n])
+        vs, _ = compute_gradients(potential, us_list_ALDI[:,:,n])
         
         drift = - np.dot(C,vs) + (d+1)*1/J*(us-m_us) 
         noise = np.random.normal(0,1,(J,J))
@@ -83,23 +83,25 @@ def run_ALDINR(potential, N_sim, u0, tau, const):
         sqrtC = scipy.linalg.sqrtm(C)
         
         # compute D
-        D_opt_tilde, test_v, lambda_min = construct_D_opt_tilde(C,d)
+        D_opt_tilde, v, lambda_min = construct_D_opt_tilde(C,d)
         if lambda_min> 500:
             print("ALDINR diverging")
+        print("lambda min")
         print(lambda_min)
         D_opt = construct_D_opt(C,d)
-
+        print("trace D opt")
+        print(np.trace(D_opt))
         # compute psis
-        psis = construct_onb(d,test_v)
+        psis = construct_onb(d, v)
         
         # compute sqrt D
         sqrtD = scipy.linalg.sqrtm(D_opt)
         
         # compute J opt
-        J_opt = construct_J_opt(psis, test_v, lambda_min, const, d, sqrtC)
+        J_opt = construct_J_opt(psis, v, lambda_min, const, d, sqrtC)
         
         T = J_opt +D_opt
-        vs, H = compute_gradients(potential, us)
+        vs, _ = compute_gradients(potential, us)
         
         drift = - np.dot(T,vs) 
         noise = np.random.normal(0,1,(2,J))
