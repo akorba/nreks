@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import matplotlib.pylab as pl
 
 
-def plot_results(potential, us_list, name, N_burnin = 0, xmin = -2, xmax = 2, ymin = -2, ymax = 2):
+def plot_results(potential, us_list, tau, name, N_burnin = 0, xmin = -2, xmax = 2, ymin = -2, ymax = 2):
     
     u0s = np.linspace(xmin,xmax,150)
     u1s = np.linspace(ymin,ymax,150)
@@ -28,4 +28,4 @@ def plot_results(potential, us_list, name, N_burnin = 0, xmin = -2, xmax = 2, ym
     J, N_sim = us_list.shape[1], us_list.shape[2]
     #algo = nameof(us_list)
     #print(algo)
-    plt.title(name+ ', J = '+str(J)+", N = "+str(N_sim))
+    plt.title(name+ ', J = '+str(J)+", N = "+str(N_sim) +", stepsize ="+str(tau))
