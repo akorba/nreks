@@ -33,19 +33,16 @@ def run_ULA(potential, N_sim, u0, tau):
 def run_ALDI_with_gradient(potential, N_sim, u0, tau):
     
     d, J = u0.shape
-    
     us_list_ALDI = np.zeros((d,J,N_sim))
     us_list_ALDI[:,:,0] = u0
     
-
-
-    
     for n in range(N_sim-1):   
+        
         us = us_list_ALDI[:,:,n]
         m_us = np.mean(us, axis=1)[:,np.newaxis]
-        u_c = us-m_us 
-        C = np.cov(us)*(J-1)/J 
-        Csqrt = 1/np.sqrt(J)*u_c
+        u_c = us - m_us 
+        C = np.cov(us) * (J-1)/J 
+        Csqrt = 1/np.sqrt(J) * u_c
         
         vs, _ = compute_gradients(potential, us_list_ALDI[:,:,n])
         
@@ -53,9 +50,7 @@ def run_ALDI_with_gradient(potential, N_sim, u0, tau):
         noise = np.random.normal(0,1,(J,J))
         diff = np.sqrt(2)*Csqrt@noise
     
-        us_list_ALDI[:,:,n+1] = us+tau*drift  + np.sqrt(tau)*diff
-        
-
+        us_list_ALDI[:,:,n+1] = us + tau * drift  + np.sqrt(tau) * diff
 
     return us_list_ALDI
 
@@ -63,15 +58,15 @@ def run_ALDI_with_gradient(potential, N_sim, u0, tau):
 def run_ALDINR(potential, N_sim, u0, tau, const):
 
     d, J = u0.shape    
-
     us_list_ALDINR = np.zeros((d,J,N_sim))
     us_list_ALDINR[:,:,0] = u0
     
     # to track the convergence
-    preconditioners = np.ones((d, d, N_sim)) # product of (D_opt+J_opt)K^{-1}
-    preconditioners[:, :, 0] = np.cov(u0)*(J-1)/J
+    #preconditioners = np.ones((d, d, N_sim)) # product of (D_opt+J_opt)K^{-1}
+    #preconditioners[:, :, 0] = np.cov(u0)*(J-1)/J
     
     for n in range(N_sim-1): 
+        
         us = us_list_ALDINR[:,:,n] # shape (d, J)
         m_us = np.mean(us, axis=1)[:,np.newaxis] # shape (2, 1)
         C = np.cov(us)*(J-1)/J # shape (2,2)
@@ -83,21 +78,20 @@ def run_ALDINR(potential, N_sim, u0, tau, const):
         D_opt_tilde, v, lambda_min = construct_D_opt_tilde(C,d)
         if lambda_min> 500:
             print("ALDINR diverging")
+            
         D_opt = construct_D_opt(C,d)
 
-        if np.mod(n,100) == 0:
+        if np.mod(n,300) == 0:
             print("iter")
             print(n)
             print("lambda min")
             print(lambda_min)
-            print("trace D opt")
-            print(np.trace(D_opt))
-            print()
+            
         # compute psis
         psis = construct_onb(d, v)
         
         # compute sqrt D
-        sqrtD = scipy.linalg.sqrtm(D_opt)
+        sqrtD = scipy.linalg.sqrtm(D_opt) # we should be able to do something cheap here
         
         # compute J opt
         J_opt = construct_J_opt(psis, v, lambda_min, const, d, sqrtC)
@@ -105,16 +99,17 @@ def run_ALDINR(potential, N_sim, u0, tau, const):
         T = J_opt +D_opt
         vs, _ = compute_gradients(potential, us)
         
-        drift = - np.dot(T,vs) 
+        drift = - np.dot(T, vs) 
         noise = np.random.normal(0,1,(2,J))
-        diff = np.sqrt(2)*np.dot(sqrtD,noise) 
+        diff = np.sqrt(2) * np.dot(sqrtD,noise) 
         
-        us_list_ALDINR[:,:,n+1] = us+tau*drift  + np.sqrt(tau)*diff 
+        
+        us_list_ALDINR[:, :, n+1] = us + tau * drift  + np.sqrt(tau) * diff 
         
         # keep record of some stats
-        preconditioners[:, :, n+1] = T
+        #preconditioners[:, :, n] = T
         
-    return us_list_ALDINR, preconditioners
+    return us_list_ALDINR #, preconditioners
 
 
 """

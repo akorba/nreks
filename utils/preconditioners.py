@@ -9,8 +9,8 @@ def construct_D_opt_tilde(C,d):
     eigenvalues, eigenvectors = np.linalg.eig(C)
     index_min = np.argmin(eigenvalues)
     lambda_min = eigenvalues[index_min]
-    v = eigenvectors[:,index_min]
-    D_opt_tilde = (d/lambda_min)*np.tensordot(v,v,axes = 0) # D is symmetric 
+    v = eigenvectors[:, index_min]
+    D_opt_tilde = (d/lambda_min)*np.tensordot(v, v, axes = 0) # D is symmetric 
     return D_opt_tilde, v, lambda_min
 
 def construct_D_opt(C,d):
