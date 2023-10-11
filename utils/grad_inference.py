@@ -33,10 +33,11 @@ def coeffToGradHess(coeffs, X):
         return grad, None
 
 
+# xs = points; vs = I(points) (potential of points)
 def inferGradientAndHess(xs, vs, hessian = False, ind=0, retOnlyMatrix=False, coeffs0=None, additionalvariance=0.0, scaledversion=False):    
-    d,J = xs.shape
-    X = xs-xs[:,ind,np.newaxis]
-    V = vs-vs[ind]
+    d, J = xs.shape
+    X = xs - xs[:,ind,np.newaxis]
+    V = vs - vs[ind]
     norms_X = np.linalg.norm(X, axis=0, keepdims=True)
     Z = np.copy(X)
     if scaledversion:
@@ -171,10 +172,6 @@ if __name__ == "__main__":
         truegrads = useDfnc(xs[0,:], xs[1,:])
     
     d,J = xs.shape
-    
-   
-    
-    
     
     
     
@@ -391,7 +388,8 @@ if __name__ == "__main__":
         #plt.title(f"h={hessian},pd={penalizedistance}")
             
 
-# method for computing all gradients at once
+# method for computing all gradients at once 
+# anna: keep hessian = True otherwise it diverges automatically ! 
 def compute_gradients(I, points):
     vs = np.zeros_like(points)
     d, J = points.shape
@@ -400,4 +398,7 @@ def compute_gradients(I, points):
         return_dict= inferGradientAndHess(points, I(points), hessian = True, ind=i, additionalvariance=0.0)
         vs[:,i], H[:,:,i] = return_dict['grad'], return_dict['H']
     return vs, H
+
+
+
             

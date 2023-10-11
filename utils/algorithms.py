@@ -12,7 +12,7 @@ from utils.preconditioners import *
 
 # independent Langevin sampler (independent particles)
 #  number of iterations, initialization
-def run_ULA(potential, N_sim, u0, tau):
+def run_ULA(potential, N_sim, u0, tau, grad_inference = compute_gradients):
     
     d, J  = u0.shape
 
@@ -22,15 +22,15 @@ def run_ULA(potential, N_sim, u0, tau):
     
     for n in range(N_sim-1):    
         us = us_list_ULA[:,:,n]
-        vs, _ = compute_gradients(potential, us_list_ULA[:,:,n])
+        vs, _ = grad_inference(potential, us_list_ULA[:,:,n])
         us_list_ULA[:,:,n+1] = us_list_ULA[:,:,n] - tau*vs \
             + np.sqrt(2*tau)*np.random.normal(0,1,(d,J))
 
     return us_list_ULA
 
 
-# ALDI with nonsymmetric square root of C
-def run_ALDI_with_gradient(potential, N_sim, u0, tau):
+# true_square_root = False: ALDI with nonsymmetric square root of C
+def run_ALDI_with_gradient(potential, N_sim, u0, tau, true_square_root = False, grad_inference = compute_gradients):
     
     d, J = u0.shape
     us_list_ALDI = np.zeros((d,J,N_sim))
@@ -42,20 +42,29 @@ def run_ALDI_with_gradient(potential, N_sim, u0, tau):
         m_us = np.mean(us, axis=1)[:,np.newaxis]
         u_c = us - m_us 
         C = np.cov(us) * (J-1)/J 
-        Csqrt = 1/np.sqrt(J) * u_c
         
-        vs, _ = compute_gradients(potential, us_list_ALDI[:,:,n])
+        vs, _ = grad_inference(potential, us_list_ALDI[:,:,n])
         
         drift = - np.dot(C,vs) + (d+1)*1/J*(us-m_us) 
-        noise = np.random.normal(0,1,(J,J))
-        diff = np.sqrt(2)*Csqrt@noise
+        
+        if not true_square_root: 
+            Csqrt = 1/np.sqrt(J) * u_c
+            noise = np.random.normal(0,1,(J,J))
+            diff = np.sqrt(2)*Csqrt@noise
+        
+        else: 
+            sqrtC = scipy.linalg.sqrtm(C)
+            noise = np.random.normal(0,1,(2,J))
+            diff = np.sqrt(2) * np.dot(sqrtC,noise)
+        
     
         us_list_ALDI[:,:,n+1] = us + tau * drift  + np.sqrt(tau) * diff
 
     return us_list_ALDI
 
+
 # our scheme. with true square root of D, also without the corrective term of Nuesken
-def run_ALDINR(potential, N_sim, u0, tau, const):
+def run_ALDINR(potential, N_sim, u0, tau, const, grad_inference = compute_gradients):
 
     d, J = u0.shape    
     us_list_ALDINR = np.zeros((d,J,N_sim))
@@ -81,11 +90,12 @@ def run_ALDINR(potential, N_sim, u0, tau, const):
             
         D_opt = construct_D_opt(C,d)
 
-        if np.mod(n,300) == 0:
+        if np.mod(n, 500) == 0:
             print("iter")
             print(n)
             print("lambda min")
             print(lambda_min)
+            #print(C)
             
         # compute psis
         psis = construct_onb(d, v)
@@ -97,7 +107,7 @@ def run_ALDINR(potential, N_sim, u0, tau, const):
         J_opt = construct_J_opt(psis, v, lambda_min, const, d, sqrtC)
         
         T = J_opt +D_opt
-        vs, _ = compute_gradients(potential, us)
+        vs, _ = grad_inference(potential, us)
         
         drift = - np.dot(T, vs) 
         noise = np.random.normal(0,1,(2,J))
