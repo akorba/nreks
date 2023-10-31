@@ -53,6 +53,7 @@ def plot_results(potential, us_list, tau, name, N_burnin = 0, xmin = -2, xmax = 
     plt.ylim((ymin,ymax))
     plt.gca().set_aspect('equal')
     plt.legend()
+    plt.tight_layout()
     plt.show()
 
 
@@ -94,6 +95,9 @@ def _arrow3D(ax, x, y, z, dx, dy, dz, *args, **kwargs):
 setattr(Axes3D, 'arrow3D', _arrow3D)
 
 
+######################################
+#      Plot for statistics           #
+######################################
 
 # compute at each time iteration the empirical mean of the particles
 def compute_means(iterates):
@@ -108,7 +112,7 @@ def compute_covariances(iterates):
         covariances[:, :, i] = np.cov(iterates[:, :, i])*(J-1)/J
     return covariances
  
-    
+# plots histogram of previous positions on each marginal (x, y axis in two dimensions)
 def plot_marginals_histogram(iterates, target_unnorm_density, name, xmin = -6, xmax = 6, ymin = -6, ymax = 6):
     
     nb_grid = 200
@@ -144,3 +148,122 @@ def plot_marginals_histogram(iterates, target_unnorm_density, name, xmin = -6, x
     plt.hist(iterates[0,:,0:].flatten(), density=True)
     plt.plot(u1s, marg_over_y, color = 'red')
     plt.title(str(name)+' - Marginal over y')
+    plt.tight_layout()
+    plt.show()
+    
+
+# plot the norm of the mean of particles 
+def subplot_norm_means(means_algo_all, name, J, tau, ax=None):
+    
+    _, N_sim, _ = means_algo_all.shape
+    
+    if ax is None:
+        ax = plt.gca()
+        
+    # compute the norm (along axis 0 corresponding to d) of mean of particles 
+    # at each time for each experiment - results in a vector of size (N_sim, N_exp)
+    norms_mean_each_exp = np.asarray([np.linalg.norm(means_algo_all[:, i, :], axis = 0) \
+                            for i in range(N_sim)])
+    
+    # average norm and compute std deviation over N_exp
+    norm_means = np.mean(norms_mean_each_exp, axis = 1)
+    std_norm_means = np.std(norms_mean_each_exp, axis = 1)
+    
+    subplot = ax.plot(norm_means, label = name)
+    ax.fill_between(range(N_sim), norm_means - std_norm_means,\
+                    norm_means + std_norm_means, alpha=0.2)
+    
+    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    ax.title.set_text(r'Norm of empirical mean of particles $\Vert \bar{u}_n \Vert$  (J = '+str(J)+', $\gamma$ = '+str(tau)+')')
+    return subplot
+
+# plot the norm of the covariance over particles
+def subplot_norm_covariances(covariances_algo_all, name, J, tau, ax=None):
+    
+    _, _, N_sim, _ = covariances_algo_all.shape
+    
+    if ax is None:
+        ax = plt.gca()
+     
+    norm_covariances_each_exp = np.asarray([np.linalg.norm(covariances_algo_all[:, :, i, :], axis = (0, 1)) \
+                            for i in range(N_sim)])
+                                        
+    norm_covariances = np.mean(norm_covariances_each_exp, axis =1)
+    std_covariances = np.std(norm_covariances_each_exp, axis =1)
+                                            
+    subplot = ax.plot(norm_covariances, label = name)
+    ax.fill_between(range(N_sim), norm_covariances - std_covariances,\
+                    norm_covariances + std_covariances, alpha=0.2)
+    
+    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    ax.title.set_text(r'Norm of covariance of particles $\Vert C_n^{uu}\Vert$ (J = '+str(J)+', $\gamma$ = '+str(tau)+')')
+    return subplot
+
+# plot one of the coordinates (eg x axis or y axis in 2d) of the mean of particles
+def subplot_mean_coordinate(means_algo_all, name, J, tau, coordinate, ax=None):
+    
+    _, N_sim, _ = means_algo_all.shape
+    
+    if ax is None:
+        ax = plt.gca()        
+
+    mean_x_each_exp = means_algo_all[coordinate, :, :]
+    
+    mean_x = np.mean(mean_x_each_exp, axis = 1)
+    std_mean_x = np.std(mean_x_each_exp, axis = 1)
+    
+    subplot = ax.plot(mean_x, label = name)
+    ax.fill_between(range(N_sim), mean_x - std_mean_x,\
+                    mean_x + std_mean_x, alpha=0.2)
+    
+    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    ax.title.set_text('Means of particles (coordinate '+str(coordinate )+')  - (J = '+str(J)+', $\gamma$ = '+str(tau)+')')
+    return subplot
+
+# plot one of the coordinates (eg x axis or y axis in 2d) of the ERGODIC mean of particles
+def subplot_ergodic_mean_coordinate(means_algo_all, name, J, tau, coordinate, ax=None):
+    
+    _, N_sim, _ = means_algo_all.shape
+    
+    if ax is None:
+        ax = plt.gca()        
+    
+    # below it is not efficient as I am computing it for each coordinate but otherwise numpy mean flattens the array
+    ergodic_mean_x_each_exp = np.asarray([np.mean(means_algo_all[:, :i, :], axis = 1)\
+                                          for i in range(1, N_sim + 1)])
+    ergodic_mean_x_each_exp = ergodic_mean_x_each_exp[:, coordinate, :]
+    ergodic_mean_x = np.mean(ergodic_mean_x_each_exp, axis = 1)
+    std_ergodic_mean_x = np.std(ergodic_mean_x_each_exp, axis = 1)
+    
+    subplot = ax.plot(ergodic_mean_x, label = name)
+    ax.fill_between(range(N_sim), ergodic_mean_x - std_ergodic_mean_x,\
+                    ergodic_mean_x + std_ergodic_mean_x, alpha=0.2)
+    
+    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    ax.title.set_text('Ergodic means of particles (coordinate '+str(coordinate )+')  - (J = '+str(J)+', $\gamma$ = '+str(tau)+')')
+    return subplot
+
+
+def subplot_covariance_coordinate(covariances_algo_all, name, J, tau, coordinate, ax=None):
+    
+    i, j = coordinate
+    
+    _, _, N_sim, _ = covariances_algo_all.shape
+    
+    if ax is None:
+        ax = plt.gca()        
+
+    covariance_x_each_exp = covariances_algo_all[i, j, :, :]
+    
+    covariance_x = np.mean(covariance_x_each_exp, axis = 1)
+    std_covariance_x = np.std(covariance_x_each_exp, axis = 1)
+    
+    subplot = ax.plot(covariance_x, label = name)
+    ax.fill_between(range(N_sim), covariance_x - std_covariance_x,\
+                    covariance_x + std_covariance_x, alpha=0.2)
+    
+    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    ax.title.set_text('Covariance '+str(coordinate)+' coordinate) - (J = '+str(J)+', $\gamma$ = '+str(tau)+')')
+    return subplot
+
+
