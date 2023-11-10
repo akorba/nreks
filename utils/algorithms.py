@@ -42,6 +42,7 @@ def run_ULA_mog(grad_log_target, N_sim, u0, tau):
 
 # true_square_root = False corresponds to ALDI with the nonsymmetric square root of C
 # while true_square_root = True corresponds to ALDI with the true square root of C
+# I comment the corrective term of Nuesken
 def run_ALDI_with_gradient_mog(grad_log_target, N_sim, u0, tau, true_square_root = True):
     
     d, J = u0.shape
@@ -62,8 +63,9 @@ def run_ALDI_with_gradient_mog(grad_log_target, N_sim, u0, tau, true_square_root
             for i in range(us.shape[1]):
                 vs[:, i] +=  grad_log_target(us[:, i])
             
-            drift = + np.dot(C,vs) + (d+1)*1/J*(us-m_us) 
+            drift = + np.dot(C,vs) #+ (d+1)*1/J*(us-m_us)  # I comment the corrective term of Nuesken
             
+            # if we want to compute the nonsymmetric square root
             if not true_square_root: 
                 Csqrt = 1/np.sqrt(J) * u_c
                 noise = np.random.normal(0,1,(J,J))
@@ -241,7 +243,9 @@ def run_ALDINR(potential, N_sim, u0, tau, const, grad_inference = compute_gradie
             us = us_list_ALDINR[:,:,n] # shape (d, J)
             m_us = np.mean(us, axis=1)[:,np.newaxis] # shape (2, 1)
             C = np.cov(us)*(J-1)/J # shape (2,2)
-    
+            #reg = 1e-9 * np.eye(d)
+            #C = C + reg
+            
             # compute sqrt C
             sqrtC = scipy.linalg.sqrtm(C)
             
@@ -257,7 +261,7 @@ def run_ALDINR(potential, N_sim, u0, tau, const, grad_inference = compute_gradie
                 print(n)
                 print("lambda min")
                 print(lambda_min)
-                #print(C)
+                print(C)
                 
             # compute psis
             psis = construct_onb(d, v)

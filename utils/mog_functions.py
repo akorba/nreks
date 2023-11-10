@@ -34,6 +34,7 @@ def bimodal_distribution(z, gap, sigma1, sigma2):
 
 
 # not vectorized
+# I had to add 1e-9 to stabilize the scheme
 def gradient_of_log_bimodal_distribution(z,  gap, sigma1, sigma2):
 
     mean1 = np.asarray([-gap/2, 0])
@@ -46,7 +47,7 @@ def gradient_of_log_bimodal_distribution(z,  gap, sigma1, sigma2):
     pdf2 = multivariate_normal(mean2, cov2).pdf(z)
 
 
-    gradient= - (1/(bimodal_distribution(z, gap, sigma1, sigma2)))*(0.5*pdf1*np.matmul(np.linalg.inv(cov1),(z - mean1))\
+    gradient= - (1/(1e-9+ bimodal_distribution(z, gap, sigma1, sigma2)))*(0.5*pdf1*np.matmul(np.linalg.inv(cov1),(z - mean1))\
                                                      +0.5*pdf2*np.matmul(np.linalg.inv(cov2),(z - mean2)))
     return gradient
 

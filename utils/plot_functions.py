@@ -42,13 +42,14 @@ def plot_results(potential, us_list, tau, name, N_burnin = 0, xmin = -2, xmax = 
     U = np.stack((U0,U1))
     plt.contour(U0, U1, np.exp(-potential_(U)), 5, alpha=0.4, colors="black")
     
-    # plot initial and final positions
-    plt.scatter(us_list[0, :, 0], us_list[1, :, 0], color = "purple", label = 'N = 0')
-    plt.scatter(us_list[0, :, -1], us_list[1, :, -1], color = "red", label = 'N = 1')
-    
     # parameters of the plot
     J, N_sim = us_list.shape[1], us_list.shape[2]
-    plt.title(name + ', J = '+str(J)+", N = "+str(N_sim) +", $\gamma$ ="+str(tau))
+    
+    # plot initial and final positions
+    plt.scatter(us_list[0, :, 0], us_list[1, :, 0], color = "purple", label = 'N = 0')
+    plt.scatter(us_list[0, :, -1], us_list[1, :, -1], color = "red", label = 'N = '+str(N_sim))
+    
+    plt.title(name + ', J = '+str(J)+", N = "+str(N_sim) +", $\\tau$ ="+str(tau))
     plt.xlim((xmin,xmax))
     plt.ylim((ymin,ymax))
     plt.gca().set_aspect('equal')
@@ -174,7 +175,7 @@ def subplot_norm_means(means_algo_all, name, J, tau, ax=None):
                     norm_means + std_norm_means, alpha=0.2)
     
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    ax.title.set_text(r'Norm of empirical mean of particles $\Vert \bar{u}_n \Vert$  (J = '+str(J)+', $\gamma$ = '+str(tau)+')')
+    ax.title.set_text(r'Norm of empirical mean of particles $\Vert \bar{u}_n \Vert$  (J = '+str(J)+', $\\tau$ = '+str(tau)+')')
     return subplot
 
 # plot the norm of the covariance over particles
@@ -196,7 +197,7 @@ def subplot_norm_covariances(covariances_algo_all, name, J, tau, ax=None):
                     norm_covariances + std_covariances, alpha=0.2)
     
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    ax.title.set_text(r'Norm of covariance of particles $\Vert C_n^{uu}\Vert$ (J = '+str(J)+', $\gamma$ = '+str(tau)+')')
+    ax.title.set_text(r'Norm of covariance of particles $\Vert C_n^{uu}\Vert$ (J = '+str(J)+', $\\tau$ = '+str(tau)+')')
     return subplot
 
 # plot one of the coordinates (eg x axis or y axis in 2d) of the mean of particles
@@ -217,7 +218,7 @@ def subplot_mean_coordinate(means_algo_all, name, J, tau, coordinate, ax=None):
                     mean_x + std_mean_x, alpha=0.2)
     
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    ax.title.set_text('Means of particles (coordinate '+str(coordinate )+')  - (J = '+str(J)+', $\gamma$ = '+str(tau)+')')
+    ax.title.set_text('Means of particles (coordinate '+str(coordinate )+')  - (J = '+str(J)+', $\\tau$ = '+str(tau)+')')
     return subplot
 
 # plot one of the coordinates (eg x axis or y axis in 2d) of the ERGODIC mean of particles
@@ -240,7 +241,7 @@ def subplot_ergodic_mean_coordinate(means_algo_all, name, J, tau, coordinate, ax
                     ergodic_mean_x + std_ergodic_mean_x, alpha=0.2)
     
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    ax.title.set_text('Ergodic means of particles (coordinate '+str(coordinate )+')  - (J = '+str(J)+', $\gamma$ = '+str(tau)+')')
+    ax.title.set_text('Ergodic means of particles (coordinate '+str(coordinate )+')  - (J = '+str(J)+', $\\tau$ = '+str(tau)+')')
     return subplot
 
 
@@ -263,7 +264,7 @@ def subplot_covariance_coordinate(covariances_algo_all, name, J, tau, coordinate
                     covariance_x + std_covariance_x, alpha=0.2)
     
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    ax.title.set_text('Covariance '+str(coordinate)+' coordinate) - (J = '+str(J)+', $\gamma$ = '+str(tau)+')')
+    ax.title.set_text('Covariance '+str(coordinate)+' coordinate) - (J = '+str(J)+', $\\tau$ = '+str(tau)+')')
     return subplot
 
 
