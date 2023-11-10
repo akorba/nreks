@@ -49,7 +49,7 @@ def plot_results(potential, us_list, tau, name, N_burnin = 0, xmin = -2, xmax = 
     plt.scatter(us_list[0, :, 0], us_list[1, :, 0], color = "purple", label = 'N = 0')
     plt.scatter(us_list[0, :, -1], us_list[1, :, -1], color = "red", label = 'N = '+str(N_sim))
     
-    plt.title(name + ', J = '+str(J)+", N = "+str(N_sim) +", $\\tau$ ="+str(tau))
+    plt.title(name + ', J = '+str(J)+", N = "+str(N_sim) +", $\\tau$ = "+str(tau))
     plt.xlim((xmin,xmax))
     plt.ylim((ymin,ymax))
     plt.gca().set_aspect('equal')

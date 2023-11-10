@@ -160,7 +160,8 @@ from utils.grad_inference import *
 #  number of iterations, initialization
 def run_ULA(potential, N_sim, u0, tau, grad_inference = compute_gradients):
     
-    potential_ = lambda u: potential(np.stack((u[0],u[1]),axis=-1))
+    potential_ = lambda u: potential(np.stack((u[0],u[1]),axis=-1)) # use this line for MOG 
+
     
     d, J  = u0.shape
 

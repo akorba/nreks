@@ -24,13 +24,9 @@ def bimodal_distribution(z, gap, sigma1, sigma2):
     cov2 = [[sigma2, 0], [0, sigma2]]
     pdf2 = multivariate_normal(mean2, cov2).pdf(z)
 
-    outcome= 0.5 * pdf1 + 0.5 * pdf2
+    outcome = 0.5 * pdf1 + 0.5 * pdf2
     return outcome
 
-
-# target potential
-#def potential(z):
-#    return -np.log(bimodal_distribution(z))
 
 
 # not vectorized
