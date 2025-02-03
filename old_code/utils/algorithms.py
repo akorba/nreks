@@ -160,8 +160,8 @@ from utils.grad_inference import *
 #  number of iterations, initialization
 def run_ULA(potential, N_sim, u0, tau, grad_inference = compute_gradients):
     
-    #potential_ = lambda u: potential(np.stack((u[0],u[1]),axis=-1)) # use this line for hardcode  MOG 
-    potential_ = potential # use this line for the G map
+    potential_ = lambda u: potential(np.stack((u[0],u[1]),axis=-1)) # use this line for MOG 
+
     
     d, J  = u0.shape
 
@@ -187,8 +187,7 @@ def run_ULA(potential, N_sim, u0, tau, grad_inference = compute_gradients):
 # true_square_root = False: ALDI with nonsymmetric square root of C
 def run_ALDI_with_gradient(potential, N_sim, u0, tau, true_square_root = False, grad_inference = compute_gradients):
     
-    #potential_ = lambda u: potential(np.stack((u[0],u[1]),axis=-1))
-    potential_ = potential
+    potential_ = lambda u: potential(np.stack((u[0],u[1]),axis=-1))
     
     d, J = u0.shape
     us_list_ALDI = np.zeros((d,J,N_sim))
@@ -228,9 +227,8 @@ def run_ALDI_with_gradient(potential, N_sim, u0, tau, true_square_root = False, 
 # our scheme. with true square root of D, also without the corrective term of Nuesken
 def run_ALDINR(potential, N_sim, u0, tau, const, grad_inference = compute_gradients):
     
-    #potential_ = lambda u: potential(np.stack((u[0],u[1]),axis=-1))
-    potential_ = potential
-    
+    potential_ = lambda u: potential(np.stack((u[0],u[1]),axis=-1))
+
     d, J = u0.shape    
     us_list_ALDINR = np.zeros((d,J,N_sim))
     us_list_ALDINR[:,:,0] = u0
