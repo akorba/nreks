@@ -18,33 +18,40 @@ def construct_D_opt(C,d):
     D_opt = D_opt_tilde * lambda_min
     return D_opt
 
-def construct_onb(d,v):
+
+
+def construct_onb(d,v): # note that v and v_prime are normalized
     psis = np.zeros((d,d))
-    e_1, e_2 = np.eye(d)[:,0], np.eye(d)[:,1]
-
-    xi = (1/np.sqrt(d))*(e_1+e_2)
-
-    dot_product =  np.dot(v.T, xi) 
-
-    theta =  math.acos(dot_product) 
+    
+    e_vectors = [np.eye(d)[:, i] for i in range(d)]
+    xi = (1 / np.sqrt(d)) * sum(e_vectors)
+    
+    a = np.dot(xi, v)
+    #print(a)
+    v_prime = (xi - a*v)/np.linalg.norm(xi - a*v)
+    b = np.dot(xi, v_prime)
+    if not (-1.0 <= a <= 1.0):
+        print("Warning: a is out of range for acos:", a)
+    theta =  math.acos(a) 
 
     c, s = np.cos(theta), np.sin(theta)
     A_theta1 = np.array(((c, -s), (s, c))) 
     A_theta2 = np.array(((c, s), (-s, c)))
-
-    if np.linalg.norm(np.dot(A_theta1,xi)-v)< 1e-8: 
+    
+    if np.allclose(np.dot(A_theta1,np.array([a, b])), np.array([1, 0]), atol =  1e-8): 
         #print("original theta chosen")
         A_theta = A_theta1
-    elif np.linalg.norm(np.dot(A_theta2,xi)-v)< 1e-8:
-        #print("had to change theta sign")
-        A_theta = A_theta2 
     else:
-        print("error wrong angle computed")
+        A_theta = A_theta2
 
-    for i in range(0,d): 
-        e_parallel = (np.dot(np.eye(d)[:,i],xi) - np.dot(np.eye(d)[:,i],v)*dot_product)/(1-dot_product**2) *xi \
-                    +(np.dot(np.eye(d)[:,i],v) - np.dot(np.eye(d)[:,i],xi)*dot_product)/(1-dot_product**2) *v
-        psi = np.dot(A_theta,e_parallel) 
+    for i in range(0,d):
+        c = np.dot(np.eye(d)[:,i],v)
+        d_ = np.dot(np.eye(d)[:,i],v_prime)
+        e_parallel = c*v +d_*v_prime 
+        c_prime, d_prime = np.dot(A_theta, np.array([c, d_]).T)
+        e_prime_parallel = c_prime*v +d_prime*v_prime
+        e_orthogonal = np.eye(d)[:,i] - e_parallel # and that e_orthogonal is zero in d=2
+        psi = e_prime_parallel + e_orthogonal
         psis[:,i]= psi
     
     return psis
